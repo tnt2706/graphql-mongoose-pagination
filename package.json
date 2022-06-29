@@ -1,0 +1,34 @@
+{
+  "name": "graphql-mongoose-pagination",
+  "version": "1.0.3",
+  "description": "",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "files": [
+    "/lib"
+  ],
+  "scripts": {
+    "test": "jest ./test",
+    "types": "find lib -name '*.d.ts' -delete && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tnt2706/graphql-mongoose-pagination.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tnt2706/graphql-mongoose-pagination/issues"
+  },
+  "homepage": "https://github.com/tnt2706/graphql-mongoose-pagination#readme",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "jest": "^28.1.0"
+  }
+}
