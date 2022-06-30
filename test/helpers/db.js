@@ -9,12 +9,7 @@ function connectDatabase() {
       .getUri()
       .then(mongoUri => {
         mongoose.connect(mongoUri, {
-          autoReconnect: true,
-          reconnectTries: 100,
-          reconnectInterval: 1000,
           useNewUrlParser: true,
-          useFindAndModify: false,
-          useCreateIndex: true,
           useUnifiedTopology: true,
         });
         mongoose.connection
