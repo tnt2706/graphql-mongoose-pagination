@@ -1,4 +1,3 @@
-/* eslint no-console:off */
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
@@ -23,7 +22,6 @@ function connectDatabase() {
             resolve();
           })
           .on('error', error => {
-            console.warn('Warning', error);
             reject(error);
           });
       });

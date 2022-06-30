@@ -26,9 +26,14 @@
   },
   "homepage": "https://github.com/tnt2706/graphql-mongoose-pagination#readme",
   "devDependencies": {
+    "@shelf/jest-mongodb": "^2.1.1",
+    "assert": "^2.0.0",
     "faker": "^5.5.3",
     "jest": "^28.1.0",
-    "mongodb-memory-server": "^8.7.2",
+    "mongodb-memory-server": "^6.9.6"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
     "mongoose": "^6.4.1"
   }
 }
