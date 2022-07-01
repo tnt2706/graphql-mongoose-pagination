@@ -7,7 +7,10 @@
     - [Sample Usage](#sample-usage)
       - [Model User](#model-user)
       - [Example 1 : Get list User, don't used cursor](#example-1--get-list-user-dont-used-cursor)
+      - [Example 2: Get list User, used cursor](#example-2-get-list-user-used-cursor)
     - [Parameters in Pagination](#parameters-in-pagination)
+    - [Return value](#return-value)
+      - [Example](#example)
 
 ## Why This Plugin
 
@@ -61,18 +64,31 @@ const paginated = new Pagination(
   User,
    {
       criteria,
-      sort: { field: "asc, order: '_id },
-      pagination: { limit:10, cursor:null , skip: 100},
+      sort: { field: "asc", order: "_id"},
+      pagination: { limit:10 , skip: 100},
       select,
     },
   );
 
+```
 
-// get list data
-await paginated.getDocs();
+#### Example 2: Get list User, used cursor
 
-//  Get cursor
-paginated.getCursor()
+```js
+const Pagination = require('graphql-mongoose-pagination')
+
+const {cursor } = input
+
+const paginated = new Pagination(
+  User,
+   {
+      criteria,
+      sort: { field: "asc", order: "_id"},
+      pagination: { limit:10, cursor },
+      select,
+    },
+  );
+
 ```
 
 ### Parameters in Pagination
@@ -86,4 +102,33 @@ paginated.getCursor()
   - `[order]`[Object] : Sort order only support `asc|desc`. [Documentation](http://mongoosejs.com/docs/api.html#query_Query-sort)
   - `[fields]`[String] : Sort field with typeof `ID,Number,Date`
 - `[select]` {String || Array} : Fields to return (by default returns all fields). [Documentation](http://mongoosejs.com/docs/api.html#query_Query-select)
-  
+
+### Return value
+
+- `[getDocs]` {Promise} - Array of documents
+- `[getCursor]` {String} - The cursor to used query next page
+
+#### Example
+
+```js
+const Pagination = require('graphql-mongoose-pagination')
+
+const {cursor } = input
+
+const paginated = new Pagination(
+  User,
+   {
+      criteria,
+      sort: { field: "asc", order: "_id"},
+      pagination: { limit:10, cursor },
+      select,
+    },
+  );
+
+  // get list data
+await paginated.getDocs();
+
+//  Get cursor
+paginated.getCursor()
+
+```
