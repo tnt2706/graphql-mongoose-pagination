@@ -64,7 +64,7 @@ const paginated = new Pagination(
   User,
    {
       criteria,
-      sort: { field: "asc", order: "_id"},
+      sort: { order: "desc"},
       pagination: { limit:10 , skip: 100},
       select,
     },
@@ -83,7 +83,7 @@ const paginated = new Pagination(
   User,
    {
       criteria,
-      sort: { field: "asc", order: "_id"},
+      sort: { field: "dateOfBirth", order: "desc"},
       pagination: { limit:10, cursor },
       select,
     },
@@ -100,7 +100,7 @@ const paginated = new Pagination(
   - `[skip]` { Number}: The number skip record
 - `[sort]` {Object}:
   - `[order]`[Object] : Sort order only support `asc|desc`. [Documentation](http://mongoosejs.com/docs/api.html#query_Query-sort)
-  - `[fields]`[String] : Sort field with typeof `ID,Number,Date`
+  - `[fields]`[String] : Sort field with schema type `ID,Number,Date`
 - `[select]` {String || Array} : Fields to return (by default returns all fields). [Documentation](http://mongoosejs.com/docs/api.html#query_Query-select)
 
 ### Return value
@@ -119,7 +119,7 @@ const paginated = new Pagination(
   User,
    {
       criteria,
-      sort: { field: "asc", order: "_id"},
+      sort: { field: "_id", order: "asc"},
       pagination: { limit:10, cursor },
       select,
     },
