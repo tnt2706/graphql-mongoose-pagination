@@ -5,15 +5,15 @@ const { Types: { ObjectId } } = require('mongoose');
  * @author: Tinh Tran
  */
 class Pagination {
-  /**
+/**
    *
    * @param {Model} Model mongoose model.
    * @param {object} criteria query criteria.
    * @param {object} pagination limit and  cursor.
    * @param {object} sort the sort parameters.
-   * @param {object} sort.field the sort field name.
+   * @param {Array} sort.fields the sort field name.
    * @param {object} sort.order order. Either 1/-1 or asc/desc.
-   * @param {object} select fields to return
+   * @param {String || Array} select fields to return
    * @param {object} options Additional limit (min,max).
    */
   constructor(Model, { criteria = {}, pagination = {}, sort = {}, select, options = {} }) {
@@ -30,9 +30,9 @@ class Pagination {
   }
 
   getSort(sort) {
-    let { field, order } = { ...sort };
+    let { fields, order } = { ...sort };
     order = order || 'asc';
-    field = field || '_id';
+    fields = _.union(fields || [], ['_id']);
 
     if (order === 'asc') {
       order = 1;
@@ -40,18 +40,16 @@ class Pagination {
       order = -1;
     }
 
-    this.op = order === 1 ? '$gt' : '$lt';
-    this.sort = { field, order };
+    this.key = order === 1 ? '$gt' : '$lt';
+    this.sort = { fields, order };
 
-    switch (field) {
-      case '_id':
-        this.sortValue = { _id: order };
-        break;
-
-      default:
-        this.isSortId = false;
-        this.sortValue = { [field]: order, _id: order };
-        break;
+    if (fields.length === 1) {
+      this.sortFields = { _id: order };
+    } else {
+      this.isSortId = false;
+      fields.forEach(field => {
+        this.sortFields = { ...this.sortFields, [field]: order };
+      });
     }
   }
 
@@ -73,7 +71,7 @@ class Pagination {
    */
 
   getSelectFields() {
-    const { field } = this.sort;
+    const { fields } = this.sort;
     let selectFields = this.select;
 
     if (this.isSortId) {
@@ -84,7 +82,7 @@ class Pagination {
       selectFields = selectFields.split(' ');
     }
 
-    return _.union(selectFields, [field]);
+    return _.union(selectFields, fields);
   }
 
   /**
@@ -94,49 +92,59 @@ class Pagination {
    */
 
   getCriteriaCursor(cursorFields) {
-    const { field } = this.sort;
-
+    const { fields } = this.sort;
     const cursor = JSON.parse(Buffer.from(cursorFields, 'base64').toString('utf8'));
 
+    const criteria = { _id: { [this.key]: new ObjectId(cursor._id) } };
+
     if (this.isSortId) {
-      return [{ _id: { [this.op]: new ObjectId(cursor._id) } }];
+      return [criteria];
     }
 
-    const isTypeDate = this.Model.schema.path(`${field}`).instance === 'Date';
+    const omitFields = fields.filter(field => field !== '_id');
+    const criteriaCursor = [];
 
-    return [
-      { [field]: { [this.op]: isTypeDate ? Date.parse(cursor[field]) : cursor[field] } },
-      { [field]: isTypeDate ? Date.parse(cursor[field]) : cursor[field], _id: { [this.op]: new ObjectId(cursor._id) } },
-    ];
+    omitFields.forEach(field => {
+      const isSchemaTypeDate = this.Model.schema.path(`${field}`).instance === 'Date';
+
+      criteria[field] = isSchemaTypeDate ? Date.parse(cursor[field]) : cursor[field];
+      criteriaCursor.push({ [field]: { [this.key]: isSchemaTypeDate ? Date.parse(cursor[field]) : cursor[field] } });
+    });
+
+    criteriaCursor.push(criteria);
+
+    return criteriaCursor;
   }
 
   /**
    * Gets the criteria.
    * @private
-   * @returns the total number of documents
+   * @returns the filter
    */
 
-  async getCriteria() {
-    let filter = { ...this.criteria };
+  getCriteria() {
+    const filter = { ...this.criteria };
 
     if (this.skip) {
       return filter;
     }
 
     if (this.cursor) {
-      if (filter.$or) {
-        const modelIds = await this.Model.distinct('_id', this.criteria);
-        filter = { _id: { $in: modelIds } };
+      const criteriaCursor = this.getCriteriaCursor(this.cursor);
+
+      if (!filter?.$or) {
+        return { ...filter, $or: criteriaCursor };
       }
 
-      const criteriaCursor = this.getCriteriaCursor(this.cursor);
-      return { ...filter, $or: criteriaCursor };
+      filter.$and = [{ $or: filter.$or }, { $or: criteriaCursor }];
+      delete filter.$or;
     }
 
     return filter;
   }
 
   /**
+   *Gets the number total docs
    *
    * @returns the total number of documents found based criteria
    */
@@ -146,14 +154,24 @@ class Pagination {
   }
 
   /**
+   *Gets the array value fields
+   *
+   * @returns the array value fields of documents found based criteria
+   */
+  async getListValueField(field) {
+    const query = await this.Model.distinct(field, this.criteria);
+    return query;
+  }
+
+  /**
    *
    * @returns the list documents found based criteria
    */
   async getDocs() {
-    const criteria = await this.getCriteria();
+    const criteria = this.getCriteria();
 
     const docs = await this.Model.find(criteria)
-      .sort(this.sortValue)
+      .sort(this.sortFields)
       .skip(this.skip)
       .limit(this.limit)
       .select(this.getSelectFields())
@@ -171,7 +189,7 @@ class Pagination {
 
   getCursor() {
     const { docs } = this;
-    const { field } = this.sort;
+    const { fields } = this.sort;
 
     if (!docs || !docs.length) {
       return null;
@@ -183,7 +201,9 @@ class Pagination {
     if (this.isSortId) {
       cursorFields = { _id: lastDocs._id };
     } else {
-      cursorFields = { _id: lastDocs._id, [field]: lastDocs[field] };
+      fields.forEach(field => {
+        cursorFields = { ...cursorFields, [field]: lastDocs[field] };
+      });
     }
 
     return Buffer.from(JSON.stringify(cursorFields)).toString('base64');
