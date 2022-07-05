@@ -18,7 +18,17 @@
     "type": "git",
     "url": "git+https://github.com/tnt2706/graphql-mongoose-pagination.git"
   },
-  "keywords": [],
+  "keywords": [
+    "graphql-mongoose-pagination",
+    "mongoose-pagination",
+    "graphql-pagination",
+    "mongoose pagination",
+    "graphql pagination",
+    "sort multi fields graphql",
+    "graphql query",
+    "mongodb pagination",
+    "pagination",
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
